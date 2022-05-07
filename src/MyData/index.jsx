@@ -10,12 +10,13 @@ import TableRow from '@mui/material/TableRow';
 import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
+import axios from 'axios'
 
 function CustomizedInputBase() {
   return (
     <Paper
       component="form"
-      sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', margin:'10px', width: '90%' }}
+      sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', margin: '10px', width: '90%' }}
     >
       <InputBase
         sx={{ ml: 1, flex: 1 }}
@@ -30,26 +31,10 @@ function CustomizedInputBase() {
 
 
 const columns = [
-  { id: 'time', label: '投放时间', minWidth: 100 },
-  { id: 'position', label: '位置', minWidth: 35 },
+  { id: 'time', label: '投放时间', minWidth: 60 },
+  { id: 'position', label: '编号', minWidth: 35 },
   { id: 'type', label: '种类', minWidth: 45, },
-  { id: 'accurency', label: '准确度', minWidth: 50, },
-];
-
-
-const rows = [
-  { time: "2022-5-3 16:22:30", position: '001', type: 'residual', accurency: 0.9 },
-  { time: "2022-5-3 16:22:31", position: '002', type: 'hazardous', accurency: 0.54 },
-  { time: "2022-5-3 16:22:32", position: '003', type: 'food', accurency: 0.92 },
-  { time: "2022-5-3 16:22:33", position: '004', type: 'recyclable', accurency: 0.91 },
-  { time: "2022-5-3 16:22:34", position: '004', type: 'recyclable', accurency: 0.91 },
-  { time: "2022-5-3 16:22:35", position: '004', type: 'recyclable', accurency: 0.91 },
-  { time: "2022-5-3 16:22:36", position: '004', type: 'recyclable', accurency: 0.91 },
-  { time: "2022-5-3 16:22:37", position: '004', type: 'recyclable', accurency: 0.91 },
-  { time: "2022-5-3 16:22:38", position: '004', type: 'recyclable', accurency: 0.91 },
-  { time: "2022-5-3 16:22:39", position: '004', type: 'recyclable', accurency: 0.91 },
-  { time: "2022-5-3 16:22:40", position: '004', type: 'recyclable', accurency: 0.91 },
-  { time: "2022-5-3 16:22:43", position: '004', type: 'recyclable', accurency: 0.91 },
+  { id: 'accuracy', label: '准确度', minWidth: 50, },
 ];
 
 const typeZhMap = {
@@ -62,6 +47,20 @@ const typeZhMap = {
 export default function StickyHeadTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [rows, setRows] = React.useState([]);
+
+  //获取数据
+  React.useEffect(() => {
+    axios.get('http://192.168.50.1:3001/history').then(
+      (res) => {
+        console.log(res.data)
+        setRows([...res.data])
+      },
+      (err) => {
+        console.log(err)
+      }
+    )
+  }, [])
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -73,9 +72,10 @@ export default function StickyHeadTable() {
   };
 
   return (
-    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+    // <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+    <React.Fragment>
       <CustomizedInputBase></CustomizedInputBase>
-      <TableContainer sx={{ maxHeight: 550 }}>
+      <TableContainer sx={{ maxHeight: 500 }}>
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
             <TableRow>
@@ -94,12 +94,13 @@ export default function StickyHeadTable() {
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row) => {
                 return (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row.time}>
+                  <TableRow hover role="checkbox" tabIndex={-1} key={row.value.time}>
                     {columns.map((column) => {
-                      const value = row[column.id];
+                      const value = row.value[column.id];
                       return (
-                        <TableCell key={value} >
-                          {column.id==='type'?typeZhMap[value]:value}
+                        <TableCell key={column.id} >
+                          {column.id === 'type' ? typeZhMap[value]
+                            : (column.id === 'position' ? value.slice(-3) : value)}
                         </TableCell>
                       );
                     })}
@@ -110,7 +111,7 @@ export default function StickyHeadTable() {
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
+        labelRowsPerPage="每页显示: "
         component="div"
         count={rows.length}
         rowsPerPage={rowsPerPage}
@@ -118,6 +119,7 @@ export default function StickyHeadTable() {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
-    </Paper>
+    </React.Fragment>
+    // </Paper>
   );
 }

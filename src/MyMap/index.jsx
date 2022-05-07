@@ -13,6 +13,9 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Box from '@mui/material/Box';
 import PropTypes from 'prop-types';
+import Slider from '@mui/material/Slider';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
 
 import { nanoid } from 'nanoid';
 
@@ -44,58 +47,70 @@ TabPanel.propTypes = {
 
 
 export default function MyMap() {
-  const [markers, setMarkers] = useState([
-    {
-      data: {
-        id: nanoid(),
-        capacity: 0.8,
-        add: false,
-        closeOnFull: false,
-        alertOnFull: false,
-        residual: true,
-        hazardous: true,
-        food: true,
-        recyclable: true
-      },
-      position: { longitude: 120.122504, latitude: 30.263686 }
-    }
-  ])
-
-  const [mapCenter,] = useState({ longitude: 120.122504, latitude: 30.263686 })
-  const [open, setOpen] = useState(false)
-
-  const initCurMarker = {
+  const newMarker = {
     data: {
       id: nanoid(),
-      capacity: 0.8,
+      capacityRate: 0.0,
+      totalCapacity: 10,
+      curCapacitity: 0,
+      add: true,
+      closeOnFull: false,
+      alertOnFull: false,
+      residual: true,
+      hazardous: true,
+      food: true,
+      recyclable: true
+    },
+    position: { longitude: 120.122504, latitude: 30.263686 }
+  }
+
+  const [markers, setMarkers] = useState([{
+    data: {
+      id: 'rKkwZHirl27G3XxrP62_s',
+      capacityRate: 0.0,
+      totalCapacity: 10,
+      curCapacitity: 0,
       add: false,
       closeOnFull: false,
       alertOnFull: false,
       residual: true,
       hazardous: true,
       food: true,
-      recyclable: true,
+      recyclable: true
     },
     position: { longitude: 120.122504, latitude: 30.263686 }
+  }])
+
+  const [mapCenter,] = useState({ longitude: 120.122504, latitude: 30.263686 })
+  const [open, setOpen] = useState(false)
+
+  const myRender = (extData) => {
+    if (extData.data.capacityRate > 0.8) {
+      return <div style={{
+        background: `url('http://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/map-marker-icon.png')`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        width: '30px',
+        height: '40px',
+        color: '#000',
+        textAlign: 'center',
+        lineHeight: '40px'
+      }}></div>
+    }
+    else {
+      return false
+    }
   }
 
-  const [curMarker, setCurMarker] = useState({ ...initCurMarker })
+
+  const [curMarker, setCurMarker] = useState({ ...newMarker })
 
   let mapEvents = {
     dblclick: (e) => {
       const { lnglat } = e;
       setCurMarker({
-        data: {
-          id: nanoid(),
-          capacity: 0.8,
-          add: true,
-          closeOnFull: false,
-          alertOnFull: false,
-          residual: true,
-          hazardous: true,
-          food: true,
-          recyclable: true,
-        },
+        ...newMarker,
         position: { latitude: lnglat.getLat(), longitude: lnglat.getLng() }
       })
       setTabPage(1)
@@ -112,7 +127,7 @@ export default function MyMap() {
     }
   }
 
-  let handleOK = (e) => {
+  let handleOK = () => {
     if (curMarker.data.add) {
       setMarkers([...markers, { ...curMarker, data: { ...curMarker.data, add: false } }])
     }
@@ -122,12 +137,12 @@ export default function MyMap() {
       }))
     }
     setOpen(false)
-    setCurMarker({ ...initCurMarker })
+    setCurMarker({ ...newMarker })
   }
 
   let handleCancle = () => {
     setOpen(false)
-    setCurMarker({ ...initCurMarker })
+    setCurMarker({ ...newMarker })
   }
 
   let handleRecyclableChange = (e) => {
@@ -147,12 +162,17 @@ export default function MyMap() {
     setCurMarker({ ...curMarker, data: { ...curMarker.data, food: e.target.checked } })
   }
 
-  let handleCloseOnFullChange = (e) => {
-    setCurMarker({ ...curMarker, data: { ...curMarker.data, closeOnFull: e.target.checked } })
-  }
+  // let handleCloseOnFullChange = (e) => {
+  //   setCurMarker({ ...curMarker, data: { ...curMarker.data, closeOnFull: e.target.checked } })
+  // }
 
   let handleAlertOnFullChange = (e) => {
     setCurMarker({ ...curMarker, data: { ...curMarker.data, alertOnFull: e.target.checked } })
+  }
+
+  let handleCapacityChange = (e) => {
+    console.log(e.target.value)
+    setCurMarker({ ...curMarker, data: { ...curMarker.data, totalCapacity: e.target.value, capacityRate: curMarker.data.curCapacitity / e.target.value } })
   }
 
   const [tabPage, setTabPage] = React.useState(0);
@@ -179,7 +199,8 @@ export default function MyMap() {
           <TabPanel index={0} value={tabPage}>
             <DialogContentText>经度: {curMarker.position.latitude.toFixed(2)} </DialogContentText>
             <DialogContentText>纬度: {curMarker.position.longitude.toFixed(2)} </DialogContentText>
-            <DialogContentText>当前容量: {(curMarker.data.capacity * 100).toFixed(2)}% </DialogContentText>
+            <DialogContentText>总容量: {curMarker.data.totalCapacity} </DialogContentText>
+            <DialogContentText>当前容量: {(curMarker.data.capacityRate * 100).toFixed(2)}% </DialogContentText>
           </TabPanel>
           <TabPanel index={1} value={tabPage}>
             <FormGroup>
@@ -189,9 +210,14 @@ export default function MyMap() {
               <FormControlLabel control={<Checkbox onChange={handleFoodChange} checked={curMarker.data.food} />} label="厨余垃圾" />
             </FormGroup>
             <FormGroup>
-              <FormControlLabel control={<Switch onChange={handleCloseOnFullChange} checked={curMarker.data.closeOnFull} />} label="装满后自动关闭" />
+              {/* <FormControlLabel control={<Switch onChange={handleCloseOnFullChange} checked={curMarker.data.closeOnFull} />} label="装满后自动关闭" /> */}
               <FormControlLabel control={<Switch onChange={handleAlertOnFullChange} checked={curMarker.data.alertOnFull} />} label="装满后发出警告" />
             </FormGroup>
+            <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
+              <Typography gutterBottom>总容量</Typography>
+              <Slider max={20} min={1} value={curMarker.data.totalCapacity} onChange={handleCapacityChange} valueLabelDisplay="auto" />
+            </Stack>
+
           </TabPanel>
         </DialogContent>
         <DialogActions>
@@ -206,7 +232,8 @@ export default function MyMap() {
         center={mapCenter}
         zoom={16}
       >
-        <Markers markers={markers} events={markerEvents} />
+        <Markers markers={markers} events={markerEvents} render={myRender}>
+        </Markers>
       </Map>
     </div>
   </div>)

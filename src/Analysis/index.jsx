@@ -1,8 +1,13 @@
 import React, { PureComponent } from "react";
 import ReactEcharts from "echarts-for-react";
 import Paper from '@mui/material/Paper';
+import axios from 'axios'
 
 class Pie extends PureComponent {
+  
+  constructor(props){
+    super(props);
+  }
 
   getOption = () => ({
     title: {
@@ -13,11 +18,6 @@ class Pie extends PureComponent {
       trigger: "item",
       formatter: "{a} <br/>{b} : {c} ({d}%)"
     },
-    // legend: {
-    //   orient: "vertical",
-    //   left: "left",
-    //   data: ["有害垃圾", "可回收垃圾", "厨余垃圾", "其他垃圾"]
-    // },
     series: [
       {
         name: "访问来源",
@@ -110,13 +110,29 @@ class Bar extends PureComponent {
 
 
 export default function Analysis() {
+  
+  let [data, setData] = React.useState([])
+  
+  //获取数据
+  React.useEffect(() => {  
+    axios.get('http://192.168.50.1:3001/history').then(
+      (res) => {
+        console.log(res.data)
+        setData([...res.data])
+      },
+      (err) => {
+        console.log(err)
+      }
+    )
+  }, [])
+  
   return (
     <React.Fragment>
-      <Paper style={{margin:"20px"}}>
-        <Pie />
+      <Paper style={{ margin: "20px" }}>
+        <Pie data={data} />
       </Paper>
-      <Paper style={{margin:"20px"}}>
-        <Bar />
+      <Paper style={{ margin: "20px" }}>
+        <Bar data={data} />
       </Paper>
     </React.Fragment>
   )
