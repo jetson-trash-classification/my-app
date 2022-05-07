@@ -18,6 +18,7 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 
 import { nanoid } from 'nanoid';
+import axios from 'axios';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -64,25 +65,23 @@ export default function MyMap() {
     position: { longitude: 120.122504, latitude: 30.263686 }
   }
 
-  const [markers, setMarkers] = useState([{
-    data: {
-      id: 'rKkwZHirl27G3XxrP62_s',
-      capacityRate: 0.0,
-      totalCapacity: 10,
-      curCapacitity: 0,
-      add: false,
-      closeOnFull: false,
-      alertOnFull: false,
-      residual: true,
-      hazardous: true,
-      food: true,
-      recyclable: true
-    },
-    position: { longitude: 120.122504, latitude: 30.263686 }
-  }])
+  const [markers, setMarkers] = useState([])
 
   const [mapCenter,] = useState({ longitude: 120.122504, latitude: 30.263686 })
   const [open, setOpen] = useState(false)
+
+
+  React.useEffect(() => {
+    axios.get('http://192.168.50.1:3001/settings').then(
+      res => {
+        console.log(res.data)
+        setMarkers(res.data)
+      },
+      err => {
+        console.log(err)
+      }
+    )
+  }, [])
 
   const myRender = (extData) => {
     if (extData.data.capacityRate > 0.8) {
@@ -128,13 +127,21 @@ export default function MyMap() {
   }
 
   let handleOK = () => {
-    if (curMarker.data.add) {
+    if (curMarker.data.add) { //由于setState是异步的，因此不能提交curMarkers
       setMarkers([...markers, { ...curMarker, data: { ...curMarker.data, add: false } }])
+      axios.put('/settings', { ...curMarker, data: { ...curMarker.data, add: false } }).then(
+        (res) => { },
+        (err) => { console.log(err) }
+      )
     }
     else {
       setMarkers(markers.map((markerObj) => {
         return markerObj.data.id === curMarker.data.id ? curMarker : markerObj
       }))
+      axios.post('/settings', { ...curMarker }).then(
+        (res) => { },
+        (err) => { console.log(err) }
+      )
     }
     setOpen(false)
     setCurMarker({ ...newMarker })

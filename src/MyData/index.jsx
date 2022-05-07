@@ -94,9 +94,9 @@ export default function StickyHeadTable() {
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row) => {
                 return (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row.value.time}>
+                  <TableRow hover role="checkbox" tabIndex={-1} key={row.time}>
                     {columns.map((column) => {
-                      const value = row.value[column.id];
+                      const value = row[column.id];
                       return (
                         <TableCell key={column.id} >
                           {column.id === 'type' ? typeZhMap[value]
