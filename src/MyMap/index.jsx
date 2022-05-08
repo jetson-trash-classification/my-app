@@ -72,7 +72,7 @@ export default function MyMap() {
 
 
   React.useEffect(() => {
-    axios.get('http://192.168.50.1:3001/settings').then(
+    axios.get('/settings').then(
       res => {
         console.log(res.data)
         setMarkers(res.data)
@@ -130,7 +130,7 @@ export default function MyMap() {
     if (curMarker.data.add) { //由于setState是异步的，因此不能提交curMarkers
       setMarkers([...markers, { ...curMarker, data: { ...curMarker.data, add: false } }])
       axios.put('/settings', { ...curMarker, data: { ...curMarker.data, add: false } }).then(
-        (res) => { },
+        (res) => { console.log(1) },
         (err) => { console.log(err) }
       )
     }
@@ -139,7 +139,7 @@ export default function MyMap() {
         return markerObj.data.id === curMarker.data.id ? curMarker : markerObj
       }))
       axios.post('/settings', { ...curMarker }).then(
-        (res) => { },
+        (res) => { console.log(2) },
         (err) => { console.log(err) }
       )
     }
