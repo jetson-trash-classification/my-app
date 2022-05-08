@@ -16,6 +16,7 @@ import PropTypes from 'prop-types';
 import Slider from '@mui/material/Slider';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
 
 import { nanoid } from 'nanoid';
 import axios from 'axios';
@@ -60,7 +61,8 @@ export default function MyMap() {
       residual: true,
       hazardous: true,
       food: true,
-      recyclable: true
+      recyclable: true,
+      url: '',
     },
     position: { longitude: 120.122504, latitude: 30.263686 }
   }
@@ -69,7 +71,6 @@ export default function MyMap() {
 
   const [mapCenter,] = useState({ longitude: 120.122504, latitude: 30.263686 })
   const [open, setOpen] = useState(false)
-
 
   React.useEffect(() => {
     axios.get('/settings').then(
@@ -156,6 +157,10 @@ export default function MyMap() {
     setCurMarker({ ...curMarker, data: { ...curMarker.data, recyclable: e.target.checked } })
   }
 
+  let handleUrlChange = (e) => {
+    setCurMarker({ ...curMarker, data: { ...curMarker.data, url: e.target.value } })
+  }
+
   let handleResidualChange = (e) => {
     setCurMarker({ ...curMarker, data: { ...curMarker.data, residual: e.target.checked } })
   }
@@ -208,6 +213,7 @@ export default function MyMap() {
             <DialogContentText>纬度: {curMarker.position.longitude.toFixed(2)} </DialogContentText>
             <DialogContentText>总容量: {curMarker.data.totalCapacity} </DialogContentText>
             <DialogContentText>当前容量: {(curMarker.data.capacityRate * 100).toFixed(2)}% </DialogContentText>
+            <DialogContentText>ip地址: {curMarker.data.url} </DialogContentText>
           </TabPanel>
           <TabPanel index={1} value={tabPage}>
             <FormGroup>
@@ -224,7 +230,10 @@ export default function MyMap() {
               <Typography gutterBottom>总容量</Typography>
               <Slider max={20} min={1} value={curMarker.data.totalCapacity} onChange={handleCapacityChange} valueLabelDisplay="auto" />
             </Stack>
-
+            <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
+            <Typography gutterBottom>ip地址</Typography>
+              <TextField id="outlined-basic" onChange={handleUrlChange} label="请输入ip地址" defaultValue={curMarker.data.url}  variant="outlined" />
+            </Stack>
           </TabPanel>
         </DialogContent>
         <DialogActions>
