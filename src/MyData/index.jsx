@@ -11,6 +11,7 @@ import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 import axios from 'axios'
+import { typeZhMap } from '../public'
 
 function CustomizedInputBase(props) {
   return (
@@ -36,13 +37,6 @@ const columns = [
   { id: 'type', label: '种类', minWidth: 45, },
   { id: 'accuracy', label: '准确度', minWidth: 50, },
 ];
-
-const typeZhMap = {
-  'residual': '其他',
-  'hazardous': '有害',
-  'food': '厨余',
-  'recyclable': '可回收',
-}
 
 export default function StickyHeadTable() {
   const [searchText, setSearchText] = React.useState('')

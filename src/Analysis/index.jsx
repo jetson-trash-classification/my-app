@@ -2,11 +2,35 @@ import React, { PureComponent } from "react";
 import ReactEcharts from "echarts-for-react";
 import Paper from '@mui/material/Paper';
 import axios from 'axios'
+import { typeZhMap } from '../public'
+
 
 class Pie extends PureComponent {
-  
-  constructor(props){
+
+  constructor(props) {
     super(props);
+    this.state = {}
+  }
+
+  componentDidMount() {
+    axios.get('http://192.168.50.1:3001/analysis', {
+      params: {
+        type: 'pie'
+      }
+    }).then(
+      (res) => {
+        this.setState({
+          ...this.state,
+          data: [...res.data].map((dataObj) => {
+            console.log(`${typeZhMap[dataObj.name]}垃圾`)
+            return { ...dataObj, name: `${typeZhMap[dataObj.name]}垃圾` }
+          })
+        })
+      },
+      (err) => {
+        console.log(err)
+      }
+    )
   }
 
   getOption = () => ({
@@ -20,17 +44,12 @@ class Pie extends PureComponent {
     },
     series: [
       {
-        name: "访问来源",
+        name: "垃圾分类占比",
         type: "pie",
         radius: "55%",
         center: ["50%", "60%"],
         animationDuration: 5000,
-        data: [
-          { value: 335, name: "有害垃圾" },
-          { value: 310, name: "可回收垃圾" },
-          { value: 234, name: "其他垃圾" },
-          { value: 135, name: "厨余垃圾" },
-        ],
+        data: this.state.data,
         itemStyle: {
           emphasis: {
             shadowBlur: 10,
@@ -54,6 +73,27 @@ class Pie extends PureComponent {
 }
 
 class Bar extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      data: [{}]
+    }
+  }
+
+  componentDidMount() {
+    axios.get('http://192.168.50.1:3001/analysis', {
+      params: {
+        type: 'bar'
+      }
+    }).then(
+      (res) => {
+        this.setState({ ...this.state, data: [...res.data] })
+      },
+      (err) => {
+        console.log(err)
+      }
+    )
+  }
   getOption = () => ({
     title: {
       text: "垃圾投放量分析"
@@ -61,9 +101,6 @@ class Bar extends PureComponent {
     tooltip: {
       trigger: "axis"
     },
-    // legend: {
-    //   data: ["邮件营销", "联盟广告", "视频广告", "直接访问", "搜索引擎"]
-    // },
     grid: {
       left: "3%",
       right: "4%",
@@ -77,25 +114,24 @@ class Bar extends PureComponent {
     },
     xAxis: {
       type: "category",
-      data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+      data: this.state.data ? this.state.data.map((dataObj) => {
+        return dataObj.day
+      }) : [],
     },
     yAxis: {
       type: "value"
     },
-    series: [
-      {
-        name: "可回收垃圾",
-        type: "bar",
-        data: [120, 132, 101, 134, 90, 230, 210],
-        animationDuration: 5000
-      },
-      {
-        name: "其他垃圾",
-        type: "line",
-        data: [220, 182, 191, 234, 290, 330, 310],
-        animationDuration: 5000
-      }
-    ]
+    series:
+      Object.keys(typeZhMap).map((typeObj) => {
+        return {
+          name: `${typeZhMap[typeObj]}垃圾数量`,
+          type: "line",
+          data: this.state.data ? this.state.data.map((dataObj) => {
+            return dataObj[typeObj]
+          }) : [],
+          animationDuration: 5000
+        }
+      })
   });
 
   render() {
@@ -110,29 +146,14 @@ class Bar extends PureComponent {
 
 
 export default function Analysis() {
-  
-  let [data, setData] = React.useState([])
-  
-  //获取数据
-  React.useEffect(() => {  
-    axios.get('http://192.168.50.1:3001/history').then(
-      (res) => {
-        console.log(res.data)
-        setData([...res.data])
-      },
-      (err) => {
-        console.log(err)
-      }
-    )
-  }, [])
-  
+
   return (
     <React.Fragment>
       <Paper style={{ margin: "20px" }}>
-        <Pie data={data} />
+        <Pie />
       </Paper>
       <Paper style={{ margin: "20px" }}>
-        <Bar data={data} />
+        <Bar />
       </Paper>
     </React.Fragment>
   )
