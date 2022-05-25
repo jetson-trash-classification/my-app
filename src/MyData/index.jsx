@@ -12,7 +12,7 @@ import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 import axios from 'axios'
 
-function CustomizedInputBase() {
+function CustomizedInputBase(props) {
   return (
     <Paper
       component="form"
@@ -21,6 +21,7 @@ function CustomizedInputBase() {
       <InputBase
         sx={{ ml: 1, flex: 1 }}
         placeholder="搜索记录"
+        onChange={props.handleSearchChange}
       />
       <IconButton type="submit" sx={{ p: '10px' }} aria-label="search">
         <SearchIcon />
@@ -28,7 +29,6 @@ function CustomizedInputBase() {
     </Paper>
   );
 }
-
 
 const columns = [
   { id: 'time', label: '投放时间', minWidth: 60 },
@@ -45,9 +45,15 @@ const typeZhMap = {
 }
 
 export default function StickyHeadTable() {
+  const [searchText, setSearchText] = React.useState('')
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [rows, setRows] = React.useState([]);
+
+  //搜索框修改回调函数
+  const handleSearchChange = (e) => {
+    setSearchText(e.target.value)
+  }
 
   //获取数据
   React.useEffect(() => {
@@ -74,7 +80,7 @@ export default function StickyHeadTable() {
   return (
     // <Paper sx={{ width: '100%', overflow: 'hidden' }}>
     <React.Fragment>
-      <CustomizedInputBase></CustomizedInputBase>
+      <CustomizedInputBase handleSearchChange={handleSearchChange}></CustomizedInputBase>
       <TableContainer sx={{ maxHeight: 500 }}>
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
@@ -90,7 +96,12 @@ export default function StickyHeadTable() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows
+            {rows.filter((dataObj) => {
+              return dataObj.time.includes(searchText)
+                || dataObj.position.includes(searchText)
+                || dataObj.type.includes(searchText)
+                || dataObj.accuracy == searchText
+            })
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row) => {
                 return (
