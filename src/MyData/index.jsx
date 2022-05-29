@@ -32,10 +32,10 @@ function CustomizedInputBase(props) {
 }
 
 const columns = [
-  { id: 'time', label: '投放时间', minWidth: 60 },
+  { id: 'time', label: '投放时间', minWidth: 65 },
   { id: 'position', label: '编号', minWidth: 35 },
   { id: 'type', label: '种类', minWidth: 45, },
-  { id: 'accuracy', label: '准确度', minWidth: 50, },
+  { id: 'accuracy', label: '准确度', minWidth: 35, },
 ];
 
 export default function StickyHeadTable() {
@@ -82,7 +82,7 @@ export default function StickyHeadTable() {
               {columns.map((column) => (
                 <TableCell
                   key={column.id}
-                  style={{ minWidth: column.minWidth }}
+                  style={{ width: column.minWidth }}
                 >
                   {column.label}
                 </TableCell>
@@ -105,7 +105,8 @@ export default function StickyHeadTable() {
                       return (
                         <TableCell key={column.id} >
                           {column.id === 'type' ? typeZhMap[value]
-                            : (column.id === 'position' ? value.slice(-3) : value)}
+                            : column.id === 'position' ? value.slice(-3)
+                              : column.id === 'accuracy' ? value.toFixed(2) : value}
                         </TableCell>
                       );
                     })}

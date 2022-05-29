@@ -54,7 +54,7 @@ export default function MyMap() {
       id: nanoid(),
       capacityRate: 0.0,
       totalCapacity: 10,
-      curCapacitity: 0,
+      curCapacity: 0,
       add: true,
       closeOnFull: false,
       alertOnFull: false,
@@ -184,7 +184,7 @@ export default function MyMap() {
 
   let handleCapacityChange = (e) => {
     console.log(e.target.value)
-    setCurMarker({ ...curMarker, data: { ...curMarker.data, totalCapacity: e.target.value, capacityRate: curMarker.data.curCapacitity / e.target.value } })
+    setCurMarker({ ...curMarker, data: { ...curMarker.data, totalCapacity: e.target.value, capacityRate: curMarker.data.curCapacity / e.target.value } })
   }
 
   const [tabPage, setTabPage] = React.useState(0);
