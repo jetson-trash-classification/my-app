@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -48,6 +49,47 @@ export default function StickyHeadTable() {
   const handleSearchChange = (e) => {
     setSearchText(e.target.value)
   }
+
+  let [requestCount, setRequestCount] = useState(0);
+
+  // Run every second
+  const delay = 1000;
+
+  function useInterval(callback, delay) {
+    const savedCallback = useRef();
+
+    // Remember the latest callback.
+    useEffect(() => {
+      savedCallback.current = callback;
+    }, [callback]);
+
+    // Set up the interval.
+    useEffect(() => {
+      function tick() {
+        savedCallback.current();
+      }
+      if (delay !== null) {
+        let id = setInterval(tick, delay);
+        return () => clearInterval(id);
+      }
+    }, [delay]);
+  }
+
+
+  //数据请求部分
+  useInterval(() => {
+    // Make the request here
+    axios.get('http://192.168.50.1:3001/history').then(
+      (res) => {
+        console.log(res.data)
+        setRows([...res.data])
+      },
+      (err) => {
+        console.log(err)
+      }
+    )
+    setRequestCount(requestCount + 1);
+  }, delay);
 
   //获取数据
   React.useEffect(() => {

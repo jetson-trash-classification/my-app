@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Map, Markers } from 'react-amap';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -47,6 +47,26 @@ TabPanel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
+function useInterval(callback, delay) {
+  const savedCallback = useRef();
+
+  // Remember the latest callback.
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
+
+  // Set up the interval.
+  useEffect(() => {
+    function tick() {
+      savedCallback.current();
+    }
+    if (delay !== null) {
+      let id = setInterval(tick, delay);
+      return () => clearInterval(id);
+    }
+  }, [delay]);
+}
+
 
 export default function MyMap() {
   const newMarker = {
@@ -72,10 +92,30 @@ export default function MyMap() {
   const [mapCenter,] = useState({ longitude: 120.122504, latitude: 30.263686 })
   const [open, setOpen] = useState(false)
 
-  React.useEffect(() => {
+
+  let [requestCount, setRequestCount] = useState(0);
+
+  // Run every second
+  const delay = 1000;
+
+  //数据请求部分
+  useInterval(() => {
+    // Make the request here
     axios.get('/settings').then(
       res => {
-        console.log(res.data)
+        setMarkers(res.data)
+      },
+      err => {
+        console.log(err)
+      }
+    )
+    setRequestCount(requestCount + 1);
+  }, delay);
+
+
+  useEffect(() => {
+    axios.get('/settings').then(
+      res => {
         setMarkers(res.data)
       },
       err => {
@@ -131,7 +171,7 @@ export default function MyMap() {
     if (curMarker.data.add) { //由于setState是异步的，因此不能提交curMarkers
       setMarkers([...markers, { ...curMarker, data: { ...curMarker.data, add: false } }])
       axios.put('/settings', { ...curMarker, data: { ...curMarker.data, add: false } }).then(
-        (res) => { console.log(1) },
+        (res) => {  },
         (err) => { console.log(err) }
       )
     }
@@ -140,7 +180,7 @@ export default function MyMap() {
         return markerObj.data.id === curMarker.data.id ? curMarker : markerObj
       }))
       axios.post('/settings', { ...curMarker }).then(
-        (res) => { console.log(2) },
+        (res) => {  },
         (err) => { console.log(err) }
       )
     }
@@ -166,7 +206,6 @@ export default function MyMap() {
   }
 
   let handleHazardousChange = (e) => {
-    console.log(e.target.checked)
     setCurMarker({ ...curMarker, data: { ...curMarker.data, hazardous: e.target.checked } })
   }
 
@@ -183,8 +222,11 @@ export default function MyMap() {
   }
 
   let handleCapacityChange = (e) => {
-    console.log(e.target.value)
-    setCurMarker({ ...curMarker, data: { ...curMarker.data, totalCapacity: e.target.value, capacityRate: curMarker.data.curCapacity / e.target.value } })
+    setCurMarker({ ...curMarker, data: {
+       ...curMarker.data, 
+       totalCapacity: e.target.value, 
+       capacityRate: curMarker.data.curCapacity / e.target.value 
+    } })
   }
 
   const [tabPage, setTabPage] = React.useState(0);
@@ -228,7 +270,7 @@ export default function MyMap() {
             </FormGroup>
             <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
               <Typography gutterBottom>总容量</Typography>
-              <Slider max={20} min={1} value={curMarker.data.totalCapacity} onChange={handleCapacityChange} valueLabelDisplay="auto" />
+              <Slider max={100} min={1} value={curMarker.data.totalCapacity} onChange={handleCapacityChange} valueLabelDisplay="auto" />
             </Stack>
             <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
             <Typography gutterBottom>ip地址</Typography>
